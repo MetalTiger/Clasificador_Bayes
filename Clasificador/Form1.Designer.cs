@@ -47,9 +47,12 @@
             this.label9 = new System.Windows.Forms.Label();
             this.txtAccuracy = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.pnlResultados = new System.Windows.Forms.Panel();
+            this.btnRegresar = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dgvConfusion)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgvMetricas)).BeginInit();
             this.groupBox1.SuspendLayout();
+            this.pnlResultados.SuspendLayout();
             this.SuspendLayout();
             // 
             // openFileDialog
@@ -164,19 +167,19 @@
             // 
             this.dgvConfusion.AllowUserToDeleteRows = false;
             this.dgvConfusion.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvConfusion.Location = new System.Drawing.Point(13, 285);
+            this.dgvConfusion.Location = new System.Drawing.Point(7, 36);
             this.dgvConfusion.Margin = new System.Windows.Forms.Padding(4);
             this.dgvConfusion.Name = "dgvConfusion";
             this.dgvConfusion.ReadOnly = true;
             this.dgvConfusion.RowTemplate.Height = 25;
-            this.dgvConfusion.Size = new System.Drawing.Size(402, 218);
+            this.dgvConfusion.Size = new System.Drawing.Size(425, 218);
             this.dgvConfusion.TabIndex = 13;
             this.dgvConfusion.TabStop = false;
             // 
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(13, 260);
+            this.label7.Location = new System.Drawing.Point(7, 11);
             this.label7.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(153, 21);
@@ -186,7 +189,7 @@
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(13, 518);
+            this.label8.Location = new System.Drawing.Point(7, 288);
             this.label8.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(171, 21);
@@ -197,19 +200,19 @@
             // 
             this.dgvMetricas.AllowUserToDeleteRows = false;
             this.dgvMetricas.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvMetricas.Location = new System.Drawing.Point(13, 543);
+            this.dgvMetricas.Location = new System.Drawing.Point(7, 313);
             this.dgvMetricas.Margin = new System.Windows.Forms.Padding(4);
             this.dgvMetricas.Name = "dgvMetricas";
             this.dgvMetricas.ReadOnly = true;
             this.dgvMetricas.RowTemplate.Height = 25;
-            this.dgvMetricas.Size = new System.Drawing.Size(459, 213);
+            this.dgvMetricas.Size = new System.Drawing.Size(454, 213);
             this.dgvMetricas.TabIndex = 16;
             this.dgvMetricas.TabStop = false;
             // 
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(13, 773);
+            this.label9.Location = new System.Drawing.Point(7, 530);
             this.label9.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(75, 21);
@@ -218,7 +221,7 @@
             // 
             // txtAccuracy
             // 
-            this.txtAccuracy.Location = new System.Drawing.Point(13, 798);
+            this.txtAccuracy.Location = new System.Drawing.Point(7, 555);
             this.txtAccuracy.Margin = new System.Windows.Forms.Padding(4);
             this.txtAccuracy.Name = "txtAccuracy";
             this.txtAccuracy.ReadOnly = true;
@@ -239,18 +242,38 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Validación Simple";
             // 
+            // pnlResultados
+            // 
+            this.pnlResultados.Controls.Add(this.btnRegresar);
+            this.pnlResultados.Controls.Add(this.dgvConfusion);
+            this.pnlResultados.Controls.Add(this.label7);
+            this.pnlResultados.Controls.Add(this.txtAccuracy);
+            this.pnlResultados.Controls.Add(this.label9);
+            this.pnlResultados.Controls.Add(this.dgvMetricas);
+            this.pnlResultados.Controls.Add(this.label8);
+            this.pnlResultados.Location = new System.Drawing.Point(12, 3);
+            this.pnlResultados.Name = "pnlResultados";
+            this.pnlResultados.Size = new System.Drawing.Size(654, 597);
+            this.pnlResultados.TabIndex = 19;
+            this.pnlResultados.Visible = false;
+            // 
+            // btnRegresar
+            // 
+            this.btnRegresar.Location = new System.Drawing.Point(497, 108);
+            this.btnRegresar.Name = "btnRegresar";
+            this.btnRegresar.Size = new System.Drawing.Size(135, 55);
+            this.btnRegresar.TabIndex = 19;
+            this.btnRegresar.Text = "Regresar";
+            this.btnRegresar.UseVisualStyleBackColor = true;
+            this.btnRegresar.Click += new System.EventHandler(this.btnRegresar_Click);
+            // 
             // FRM_Clasificador
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(687, 847);
+            this.ClientSize = new System.Drawing.Size(667, 608);
+            this.Controls.Add(this.pnlResultados);
             this.Controls.Add(this.groupBox1);
-            this.Controls.Add(this.txtAccuracy);
-            this.Controls.Add(this.label9);
-            this.Controls.Add(this.dgvMetricas);
-            this.Controls.Add(this.label8);
-            this.Controls.Add(this.label7);
-            this.Controls.Add(this.dgvConfusion);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.txtColClase);
             this.Controls.Add(this.btnAnalisis);
@@ -265,6 +288,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.dgvMetricas)).EndInit();
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            this.pnlResultados.ResumeLayout(false);
+            this.pnlResultados.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -291,5 +316,7 @@
         private Label label9;
         private TextBox txtAccuracy;
         private GroupBox groupBox1;
+        private Panel pnlResultados;
+        private Button btnRegresar;
     }
 }
