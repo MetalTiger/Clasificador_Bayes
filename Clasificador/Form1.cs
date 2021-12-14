@@ -70,7 +70,6 @@ namespace Clasificador
                     string[] lineas = File.ReadAllLines(ruta);  // Se lee el archivo
                     int renglonesMatriz = 0;     // Se obtienen los renglones
 
-
                     if (lineas.Length < 50)
                     {
                         renglonesMatriz = lineas.Length;
@@ -82,7 +81,8 @@ namespace Clasificador
 
                     }
 
-
+                    lineas = Desordenar(lineas.ToList());
+                    
                     int columnasMatriz = lineas[0].Split(',').Length;       // Se obtienen las columnas
 
                     string[,] matrizDatos = new string[renglonesMatriz, columnasMatriz];    // Se crea la matriz de datos
@@ -90,11 +90,13 @@ namespace Clasificador
 
                     //MessageBox.Show($"El archivo tiene {renglonesMatriz} renglones y {columnasMatriz} columnas.", "Infor");
 
+                    //progresoBarra.Maximum = renglonesMatriz;
+                    lblEstado.Text = "Estado: Cargando Matriz";
                     for (int i = 0; i < renglonesMatriz; i++)
                     {
 
                         string[] linea = lineas[i].Split(',');   // Se obtiene un renglon o linea del arreglo de lineas
-
+                        //progresoBarra.Value += 1;
                         //MessageBox.Show($"{linea[0]},{linea[1]},{linea[2]},{linea[3]},{linea[4]}", "Linea");
 
                         for (int j = 0; j < columnasMatriz; j++)
@@ -107,45 +109,30 @@ namespace Clasificador
 
                     }
 
+
                     // Se guarda la matriz de datos en la matriz real para calculos posteriores
 
 
                     // Obtener clases a partir de renglon proporcionado
-
+                    lblEstado.Text = "Estado: Recabando clases";
                     int colClase = Convert.ToInt32(txtColClase.Text) - 1;
 
                     Dictionary<String, double> clases = new Dictionary<String, double>(); // Diccionario que almacena las clases y el numero de estas
 
+                    clases = BuscarClases(matrizDatos, renglonesMatriz, colClase);
+
                     //List<string> clases = new List<string>();       
                     //List<string> instSinClase = new List<string>(); // Lista que almacena las instancias sin clase
 
-                    for (int i = 0; i < renglonesMatriz; i++)
-                    {
+                    //progresoBarra.Maximum = renglonesMatriz;
+                    
+                    //progresoBarra.Value = 0;
 
-                        // Si la clase ya esta contenida en el diccionario entonces se le suma 1 al contador
-                        if (clases.ContainsKey(matrizDatos[i, colClase]))
-                        {
-                            clases[matrizDatos[i, colClase]] += 1;
-
-                        }
-                        else if (!(matrizDatos[i, colClase].Trim().Length == 0))
-                        {
-                            // Si no esta contenida entonces se añade
-                            clases.Add(matrizDatos[i, colClase], 1);
-                        }
-
-                        //if (matrizDatos[i, colClase].Trim().Length == 0) {
-                        //    instSinClase.Add(matrizDatos[i, colClase]);
-                        //}
-
-
-                    }
 
                     //for (int i = 0; i < clases.Count; i++)
                     //{
                     //    MessageBox.Show(clases.ElementAt(i).ToString(), "Infor");
                     //}
-
 
 
                     // Saber cuantas categorias tienen las columnas discretizadas
@@ -155,311 +142,25 @@ namespace Clasificador
                      * numero de columna. Si una columna no esta discretizada entonces el valor de la lista será 0.
                      */
 
-                    // Lista que almacenará las categorias de la columna
-                    List<string> catColumna = new List<string>();
-
                     // Vector que almacena la cantidad de categorias por columna
-                    int[] infoCatColumna = new int[columnasMatriz];
-
-                    // Se recorre la matriz por columnas
-                    for (int i = 0; i < columnasMatriz; i++)
-                    {
-
-                        // La lista se limpia
-                        catColumna.Clear();
-
-                        for (int j = 0; j < renglonesMatriz; j++)
-                        {
-
-
-                            if (!(Double.TryParse(matrizDatos[0, i], out _))) // Si la columna ya esta discretizada
-                            {
-
-                                if (!(i == colClase)) // Si la columna no es la columna con la clase
-                                {
-
-                                    if (!catColumna.Contains(matrizDatos[j, i])) // Si la lista no contiene esa clase
-                                    {
-                                        catColumna.Add(matrizDatos[j, i]);  // Se añade la clase que no se contenia
-                                    }
-
-                                }
-
-                            }
-
-                        }
-
-
-                        infoCatColumna[i] = catColumna.Count;   // Se guarda la cantidad de clases que tenia la columna discretizada
-
-                        //if (infoCatColumna[i] == 0)
-                        //{
-                        //    MessageBox.Show($"La columna {i + 1} no esta discretizada.", "Categorias por columna");
-
-                        //}
-                        //else
-                        //{
-                        //    MessageBox.Show($"La columna {i + 1} tiene {infoCatColumna[i]} categorias.", "Categorias por columna");
-                        //}
-
-                    }
+                    int[] infoCatColumna = BuscarCategoriasColumnas(matrizDatos, renglonesMatriz, columnasMatriz, colClase);
 
                     // Discretización
                     // Primero se sacan los mayores y menores de cada columna
-
-                    double[,] mayoresMenores = new double[2, columnasMatriz];   // Matriz que contendra los valores mayor y menor de cada columna
-
-                    for (int i = 0; i < columnasMatriz; i++)
-                    {
-
-                        // Si la columna es igual a la columna de las clases o ya esta discretizada entonces no se hace nada
-                        if (Double.TryParse(matrizDatos[0, i], out _))
-                        {
-
-                            double mayor = 0;
-                            double menor = 999999;
-
-                            for (int j = 0; j < renglonesMatriz; j++)
-                            {
-
-                                //MessageBox.Show(matrizDatos[j, i], "Info");
-
-                                if (Double.Parse(matrizDatos[j, i]) > mayor)
-                                {
-                                    mayor = Double.Parse(matrizDatos[j, i]);
-                                }
-
-                                if (Double.Parse(matrizDatos[j, i]) < menor)
-                                {
-                                    menor = Double.Parse(matrizDatos[j, i]);
-                                }
-
-                            }
-
-                            //En este punto se tienen los valores mayor y menor de la columna
-
-                            mayoresMenores[0, i] = mayor;   // Los mayores se almacenan en el 1er renglon
-                            mayoresMenores[1, i] = menor;   // Los menores se almacenan en el 2do renglon
-
-                            //MessageBox.Show($"La variable mayor de la columna {i} es: {mayor}", "Info");
-                            //MessageBox.Show($"La variable menor de la columna {i} es: {menor}", "Info");
-
-                        }
-
-                    }
+                     double[,] mayoresMenores = CalcularValsMaxMin(matrizDatos, columnasMatriz, renglonesMatriz);   // Matriz que contendra los valores mayor y menor de cada columna
 
                     // Luego se realiza la discretización de cada valor del renglon
+                    lblEstado.Text = "Estado: Discretizando columnas";
                     int categorias = int.Parse(txtCategorias.Text);
-
-                    List<double> listaRangos = new List<double>();
-
-
-                    // Se recorre cada renglon de la respectiva columna en la matriz
-                    for (int i = 0; i < columnasMatriz; i++)
-                    {
-                        listaRangos.Clear();
-
-                        // Si el valor es un número entonces se discretizara
-                        if (Double.TryParse(matrizDatos[0, i], out _)) // TryParse devuelve false si lo que se quiere convertir no es un numero
-                        {
-
-                            double rango = (mayoresMenores[0, i] - mayoresMenores[1, i]) / categorias;      // Se obtiene el rango de la columna
-                            listaRangos.Add(mayoresMenores[1, i] + rango); // Primer rango
-                                                                           //MessageBox.Show($"El rango de la columna {i + 1} es {rango}", "Infor");
-
-                            // For para calcular los demás rangos
-                            for (int j = 1; j < categorias - 1; j++)
-                            {
-                                listaRangos.Add(listaRangos[j - 1] + rango);
-
-                            }
-
-                            //for (int j = 0; j < listaRangos.Count; j++)
-                            //{
-                            //    MessageBox.Show($"El rango {j} de la columna {j + 1} es {listaRangos[j]}", "Infor");
-                            //}
-
-
-                            //Se recorre cada renglon de la columna para cambiar su valor a un valor discretizado
-                            for (int j = 0; j < renglonesMatriz; j++)
-                            {
-                                // Se recorre la lista de rangos
-                                for (int x = 0; x < listaRangos.Count; x++)
-                                {
-                                    // Si se esta parado en el ultimo rango
-                                    if (x == listaRangos.Count - 1)
-                                    {
-
-                                        if (Double.Parse(matrizDatos[j, i]) >= listaRangos[x])  // Si el valor es mayor o igual al ultimo rango de la lista
-                                        {
-                                            //MessageBox.Show($"El valor {matrizDatos[j, i]} será de categoría {(x + 1)}");
-                                            matrizDatos[j, i] = (x + 1).ToString(); // Se asigna la ultima categoria
-
-                                        }
-                                        else
-                                        {
-                                            //MessageBox.Show($"El valor {matrizDatos[j, i]} será de categoría {x}");
-                                            matrizDatos[j, i] = x.ToString();       // Se asigna la penultima categoria
-
-
-                                        }
-
-                                    }
-                                    else
-                                    {
-                                        if (Double.Parse(matrizDatos[j, i]) < listaRangos[x])
-                                        {
-                                            //MessageBox.Show($"El valor {matrizDatos[j, i]} será de categoría {x}");
-                                            matrizDatos[j, i] = x.ToString();   // Se asigna la categoria que corresponde
-                                            break;  // Se rompe para que no modifique el 1er valor asignado
-                                        }
-
-                                    }
-
-                                }
-
-
-                            }
-
-                        }
-
-                    }
+                    
+                    matrizDatos = DiscretizarDatos(matrizDatos, renglonesMatriz, columnasMatriz, mayoresMenores, categorias);
 
                     // En este punto los datos ya estan discretizados
 
-                    double porcentajeEnt = Double.Parse(txtPorcentajeEnt.Text) / 100;   // Porcentaje de entrenamiento proporcionado por el usuario que indica cuantos datos serán de prueba
+                    // Cabmiar valores de prueba
+                    lblEstado.Text = "Estado: Cambiando valores de prueba";
 
-                    double cantidadDatos = Math.Ceiling(renglonesMatriz * porcentajeEnt);
-
-                    int indiceFinEnt = Convert.ToInt32(renglonesMatriz - cantidadDatos);
-
-                    MessageBox.Show("El indice done se termina el entrenamiento es " + indiceFinEnt.ToString(), "Indice Fin de entrenamiento");
-
-                    // Se necesita una lista de probabilidades ya que estas variaran dependiendo del numero de clases
-                    double[] probabilidades = new double[clases.Count];     // Lista de probabilidades
-                    int k = 1;
-
-                    // Tabla que primero almacenará los contadores de cada atributo y clase, y luego almacenará las probabilidades
-                    double[,] tablaProbs = new double[columnasMatriz, clases.Count];
-
-                    for (int i = indiceFinEnt; i < renglonesMatriz; i++)    // Este for comienza en el indice desde donde se deben hacer las pruebas
-                    {
-
-                        // Se inicializa la tabla con los valores de k
-                        for (int j = 0; j < columnasMatriz; j++)
-                        {
-
-                            for (int z = 0; z < clases.Count; z++)
-                            {
-                                tablaProbs[j, z] = k;
-
-                            }
-
-                        }
-
-                        // Comienza la asignacion de valores
-                        for (int j = 0; j < columnasMatriz; j++)            // Este for recorre las columnas
-                        {
-
-                            if (!(j == colClase))
-                            {
-
-                                // En este for se buscan los valores del valor en el que se esta parado
-                                for (int x = 0; x < indiceFinEnt; x++)          // Este for recorre los indices que son de entrenamiento
-                                {
-                                    // Se recorre las clases para verificar si el valor pertenece a alguna de ellas
-                                    for (int c = 0; c < clases.Count; c++)
-                                    {
-
-                                        if (matrizDatos[i, j].Equals(matrizDatos[x, j]) && clases.ElementAt(c).Key.Equals(matrizDatos[x, colClase]))
-                                        {
-
-                                            tablaProbs[j, c] += 1;   // Aquí se va almacenando la cantidad de veces que se tiene el valor y pertenece a la clase
-
-                                        }
-
-                                    }
-
-
-                                }
-
-
-
-                            }
-
-                        }
-
-                        // Se obtienen las probabilidades del renglon
-                        for (int y = 0; y < clases.Count; y++)
-                        {
-
-                            double probFinal = 1;
-
-                            for (int x = 0; x < columnasMatriz; x++)
-                            {
-                                if (!(x == colClase))
-                                {
-
-                                    // Se debe saber cuantas categorias hay por columna, es decir, si el dato ya viene discretizado se necesita saber cuantas categorias tiene esa columna
-                                    // De forma que si es igual a 0 entonces la columna no estaba discretizada
-                                    if (infoCatColumna[x] == 0)
-                                    {
-                                        tablaProbs[x, y] /= (clases.ElementAt(y).Value + categorias);   // Se suma el numero categorias del atributo
-                                    }
-                                    else
-                                    {
-
-                                        tablaProbs[x, y] /= (clases.ElementAt(y).Value + infoCatColumna[x]);   // Se suma el numero categorias de la columna que ya estaba discretizada al atributo
-
-                                    }
-
-                                    probFinal *= tablaProbs[x, y];
-
-                                }
-
-                            }
-
-                            // Se guardan las probabilidades del renglón de cada clase 
-                            probabilidades[y] = probFinal * (clases.ElementAt(y).Value / renglonesMatriz);
-                            //MessageBox.Show($"La probabilidad de la clase {y} = {probabilidades[y]}", "Probabilidades");
-
-                        }
-
-                        // Se obtiene el indice del numero mayor y se asigna la clase al renglón mediante el indice
-                        for (int x = 0; x < probabilidades.Length; x++)
-                        {
-
-
-                            if (probabilidades[x] == probabilidades.Max())
-                            {
-
-                                //MessageBox.Show($"El valor de la matriz es {matrizDatos[i, colClase]}", "Probabilidades Antes");
-                                //MessageBox.Show($"El valor de clase es {clases.ElementAt(x).Key}", "Probabilidades Antes");
-                                //MessageBox.Show($"Valor en matrizDatos: {matrizDatos[i, colClase]}, Valor en matrizReal: {matrizReal[i, colClase]}", "Antes");
-                                matrizDatos[i, colClase] = clases.ElementAt(x).Key;
-                                //MessageBox.Show($"Valor en matrizDatos: {matrizDatos[i, colClase]}, Valor en matrizReal: {matrizReal[i, colClase]}", "Despues");
-                                //MessageBox.Show($"El valor de la matriz es {matrizDatos[i, colClase]}", "Probabilidades Despues");
-                            }
-
-                        }
-
-
-                    }
-
-                    //for (int i = indiceFinEnt; i < renglonesMatriz; i++)
-                    //{
-
-
-                    //    for (int j = 0; j < columnasMatriz; j++)
-                    //    {
-
-                    //        MessageBox.Show(matrizDatos[i, j], "Clases");
-
-                    //    }
-
-
-                    //}
-
+                    matrizDatos = CambiarValoresPrueba(matrizDatos, renglonesMatriz, columnasMatriz, colClase, clases, infoCatColumna, categorias);
 
                     // Matriz de confusión
 
@@ -469,29 +170,8 @@ namespace Clasificador
                      * aumentar en la matriz de confusión.
                     */
 
-
-
-                    double[,] matrizConfusion = new double[clases.Count, clases.Count];
-
-                    for (int i = 0; i < renglonesMatriz; i++)
-                    {
-
-                        if (matrizDatos[i, colClase].Equals(matrizReal[i, colClase]) || matrizDatos[i, colClase] != matrizReal[i, colClase])
-                        {
-
-                            //MessageBox.Show($"Valor en matrizDatos: {matrizDatos[i, colClase]}, Valor en matrizReal: {matrizReal[i, colClase]}", "Matriz Confusion");
-
-                            int indice1 = clases.Keys.ToList().IndexOf(matrizDatos[i, colClase]);
-                            int indice2 = clases.Keys.ToList().IndexOf(matrizReal[i, colClase]);
-
-                            matrizConfusion[indice1, indice2] += 1;
-                            //MessageBox.Show($"El valor de la posicion {indice1}, {indice2} es {matrizConfusion[indice1, indice2]}", "Matriz Confusion");
-                            //MessageBox.Show($"", "Matriz Confusion");
-
-                        }
-
-                    }
-
+                    lblEstado.Text = "Estado: Generando Matriz de Confusión";
+                    double[,] matrizConfusion = GenerarMatrizConfusion(matrizDatos, matrizReal, renglonesMatriz, colClase, clases);
 
                     // En este punto la matriz de confusión ya esta generada
 
@@ -499,12 +179,11 @@ namespace Clasificador
                     dgvConfusion.Columns.Clear();
                     dgvConfusion.Rows.Clear();
 
-
+                    lblEstado.Text = "Estado: Calculando Métricas";
                     for (int i = 0; i < clases.Count; i++)
                     {
 
-
-                        dgvConfusion.Columns.Add("columna" + i, "Clase " + i);
+                        dgvConfusion.Columns.Add("columna" + i, clases.ElementAt(i).Key);
 
                     }
 
@@ -539,8 +218,6 @@ namespace Clasificador
                         dgvConfusion[clases.Count, i].Value = total;
 
                     }
-
-                    //dgvConfusion.Rows.Add();
 
                     for (int i = dgvConfusion.RowCount - 1; i < dgvConfusion.RowCount; i++)
                     {
@@ -577,7 +254,7 @@ namespace Clasificador
                             dgvMetricas.Columns.Add(nombres[i], nombres[i]);
                         }
 
-                        MessageBox.Show($"{matrizConfusion[0, 0]} / ({matrizConfusion[0, 0]} + {matrizConfusion[0, 1]})");
+                        //MessageBox.Show($"{matrizConfusion[0, 0]} / ({matrizConfusion[0, 0]} + {matrizConfusion[0, 1]})");
 
                         precision = matrizConfusion[0, 0] / (matrizConfusion[0, 0] + matrizConfusion[0, 1]);
                         recall = matrizConfusion[0, 0] / (matrizConfusion[0, 0] + matrizConfusion[1, 0]);
@@ -606,7 +283,7 @@ namespace Clasificador
 
                         dgvMetricas.Rows.Add(clases.ElementAt(0).Key, precision, recall, f1);
 
-                        txtAccuracy.Text = accuracy.ToString();
+                        txtAccuracy.Text = accuracy.ToString("0.###");
 
                     }
                     else
@@ -659,10 +336,12 @@ namespace Clasificador
                         accuracy /= renglonesMatriz;
 
 
-                        txtAccuracy.Text = accuracy.ToString();
+                        txtAccuracy.Text = accuracy.ToString("0.###");
                     }
 
+                    lblEstado.Text = "Estado: Presentación de Resultados";
                     pnlResultados.Visible = true;
+
 
                 }
                 catch (ArgumentException ex)
@@ -686,6 +365,401 @@ namespace Clasificador
         private void btnRegresar_Click(object sender, EventArgs e)
         {
             pnlResultados.Visible = false;
+            lblEstado.Text = "Estado: ";
         }
+
+        private string[] Desordenar(List<string> arr)
+        {
+
+
+            List<string> arrDes = new List<string>();
+            Random randNum = new Random();
+            while (arr.Count > 0)
+            {
+                int val = randNum.Next(0, arr.Count - 1);
+                arrDes.Add(arr[val]);
+                arr.RemoveAt(val);
+            }
+            arr = arrDes;
+
+            Thread.Sleep(100);
+
+            return arr.ToArray();
+
+        }
+
+        private Dictionary<string, double> BuscarClases(string[,] matrizDatos, double renglonesMatriz, int colClase)
+        {
+
+            Dictionary<String, double> clases = new Dictionary<String, double>();
+
+            for (int i = 0; i < renglonesMatriz; i++)
+            {
+                //progresoBarra.Value += 1;
+                // Si la clase ya esta contenida en el diccionario entonces se le suma 1 al contador
+                if (clases.ContainsKey(matrizDatos[i, colClase]))
+                {
+                    clases[matrizDatos[i, colClase]] += 1;
+
+                }
+                else if (!(matrizDatos[i, colClase].Trim().Length == 0))
+                {
+                    // Si no esta contenida entonces se añade
+                    clases.Add(matrizDatos[i, colClase], 1);
+                }
+
+                //if (matrizDatos[i, colClase].Trim().Length == 0) {
+                //    instSinClase.Add(matrizDatos[i, colClase]);
+                //}
+
+
+            }
+
+            return clases;
+
+        }
+
+        private int[] BuscarCategoriasColumnas(string[,] matrizDatos, double renglonesMatriz, int columnasMatriz, int colClase)
+        {
+
+            int[] infoCatColumna = new int[columnasMatriz];
+
+            // Lista que almacenará las categorias de la columna
+            List<string> catColumna = new List<string>();
+
+            // Se recorre la matriz por columnas
+            for (int i = 0; i < columnasMatriz; i++)
+            {
+
+                // La lista se limpia
+                catColumna.Clear();
+
+                for (int j = 0; j < renglonesMatriz; j++)
+                {
+
+
+                    if (!(Double.TryParse(matrizDatos[0, i], out _))) // Si la columna ya esta discretizada
+                    {
+
+                        if (!(i == colClase)) // Si la columna no es la columna con la clase
+                        {
+
+                            if (!catColumna.Contains(matrizDatos[j, i])) // Si la lista no contiene esa clase
+                            {
+                                catColumna.Add(matrizDatos[j, i]);  // Se añade la clase que no se contenia
+                            }
+
+                        }
+
+                    }
+
+                }
+
+
+                infoCatColumna[i] = catColumna.Count;   // Se guarda la cantidad de clases que tenia la columna discretizada
+
+                //if (infoCatColumna[i] == 0)
+                //{
+                //    MessageBox.Show($"La columna {i + 1} no esta discretizada.", "Categorias por columna");
+
+                //}
+                //else
+                //{
+                //    MessageBox.Show($"La columna {i + 1} tiene {infoCatColumna[i]} categorias.", "Categorias por columna");
+                //}
+
+            }
+
+            return infoCatColumna;
+
+        }
+
+        private double[,] CalcularValsMaxMin(string[,] matrizDatos, int columnasMatriz, int renglonesMatriz)
+        {
+
+            double[,] mayoresMenores = new double[2, columnasMatriz];   // Matriz que contendra los valores mayor y menor de cada columna
+
+            for (int i = 0; i < columnasMatriz; i++)
+            {
+
+                // Si la columna es igual a la columna de las clases o ya esta discretizada entonces no se hace nada
+                if (Double.TryParse(matrizDatos[0, i], out _))
+                {
+
+                    double mayor = 0;
+                    double menor = 999999;
+
+                    for (int j = 0; j < renglonesMatriz; j++)
+                    {
+
+                        //MessageBox.Show(matrizDatos[j, i], "Info");
+
+                        if (Double.Parse(matrizDatos[j, i]) > mayor)
+                        {
+                            mayor = Double.Parse(matrizDatos[j, i]);
+                        }
+
+                        if (Double.Parse(matrizDatos[j, i]) < menor)
+                        {
+                            menor = Double.Parse(matrizDatos[j, i]);
+                        }
+
+                    }
+
+                    //En este punto se tienen los valores mayor y menor de la columna
+
+                    mayoresMenores[0, i] = mayor;   // Los mayores se almacenan en el 1er renglon
+                    mayoresMenores[1, i] = menor;   // Los menores se almacenan en el 2do renglon
+
+                    //MessageBox.Show($"La variable mayor de la columna {i} es: {mayor}", "Info");
+                    //MessageBox.Show($"La variable menor de la columna {i} es: {menor}", "Info");
+
+                }
+
+            }
+
+            return mayoresMenores;
+
+        }
+
+        private string[,] DiscretizarDatos(string[,] matrizDatos, int renglonesMatriz, int columnasMatriz, double[,] mayoresMenores, double categorias)
+        {
+            // Lista de rangos que varía
+            List<double> listaRangos = new List<double>();
+
+            // Se recorre cada renglon de la respectiva columna en la matriz
+            for (int i = 0; i < columnasMatriz; i++)
+            {
+                listaRangos.Clear();
+                //progresoBarra.Value += 1;
+                // Si el valor es un número entonces se discretizara
+                if (Double.TryParse(matrizDatos[0, i], out _)) // TryParse devuelve false si lo que se quiere convertir no es un numero
+                {
+
+                    double rango = (mayoresMenores[0, i] - mayoresMenores[1, i]) / categorias;      // Se obtiene el rango de la columna
+                    listaRangos.Add(mayoresMenores[1, i] + rango); // Primer rango
+                                                                   //MessageBox.Show($"El rango de la columna {i + 1} es {rango}", "Infor");
+
+                    // For para calcular los demás rangos
+                    for (int j = 1; j < categorias - 1; j++)
+                    {
+                        listaRangos.Add(listaRangos[j - 1] + rango);
+
+                    }
+
+                    //for (int j = 0; j < listaRangos.Count; j++)
+                    //{
+                    //    MessageBox.Show($"El rango {j} de la columna {j + 1} es {listaRangos[j]}", "Infor");
+                    //}
+
+
+                    //Se recorre cada renglon de la columna para cambiar su valor a un valor discretizado
+                    for (int j = 0; j < renglonesMatriz; j++)
+                    {
+                        // Se recorre la lista de rangos
+                        for (int x = 0; x < listaRangos.Count; x++)
+                        {
+                            // Si se esta parado en el ultimo rango
+                            if (x == listaRangos.Count - 1)
+                            {
+
+                                if (Double.Parse(matrizDatos[j, i]) >= listaRangos[x])  // Si el valor es mayor o igual al ultimo rango de la lista
+                                {
+                                    //MessageBox.Show($"El valor {matrizDatos[j, i]} será de categoría {(x + 1)}");
+                                    matrizDatos[j, i] = (x + 1).ToString(); // Se asigna la ultima categoria
+
+                                }
+                                else
+                                {
+                                    //MessageBox.Show($"El valor {matrizDatos[j, i]} será de categoría {x}");
+                                    matrizDatos[j, i] = x.ToString();       // Se asigna la penultima categoria
+
+
+                                }
+
+                            }
+                            else
+                            {
+                                if (Double.Parse(matrizDatos[j, i]) < listaRangos[x])
+                                {
+                                    //MessageBox.Show($"El valor {matrizDatos[j, i]} será de categoría {x}");
+                                    matrizDatos[j, i] = x.ToString();   // Se asigna la categoria que corresponde
+                                    break;  // Se rompe para que no modifique el 1er valor asignado
+                                }
+
+                            }
+
+                        }
+
+
+                    }
+
+                }
+
+            }
+
+            return matrizDatos;
+
+        }
+
+        private string[,] CambiarValoresPrueba(string[,] matrizDatos, int renglonesMatriz, int columnasMatriz, int colClase, Dictionary<string, double> clases, int[] infoCatColumna, int categorias)
+        {
+            double porcentajeEnt = Double.Parse(txtPorcentajeEnt.Text) / 100;   // Porcentaje de entrenamiento proporcionado por el usuario que indica cuantos datos serán de prueba
+
+            double cantidadDatos = Math.Ceiling(renglonesMatriz * porcentajeEnt);
+
+            int indiceFinEnt = Convert.ToInt32(renglonesMatriz - cantidadDatos);
+
+            //MessageBox.Show("El indice donde se termina el entrenamiento es " + indiceFinEnt.ToString(), "Indice Fin de entrenamiento");
+
+            // Se necesita una lista de probabilidades ya que estas variaran dependiendo del numero de clases
+            double[] probabilidades = new double[clases.Count];     // Lista de probabilidades
+            int k = 1;
+
+            // Tabla que primero almacenará los contadores de cada atributo y clase, y luego almacenará las probabilidades
+            double[,] tablaProbs = new double[columnasMatriz, clases.Count];
+
+            //progresoBarra.Maximum = renglonesMatriz;
+
+            //progresoBarra.Value = 0;
+            //progresoBarra.Value += 1;
+
+            // Se inicializa la tabla con los valores de k
+            for (int j = 0; j < columnasMatriz; j++)
+            {
+
+                for (int z = 0; z < clases.Count; z++)
+                {
+                    tablaProbs[j, z] = k;
+
+                }
+
+            }
+
+            for (int i = indiceFinEnt; i < renglonesMatriz; i++)    // Este for comienza en el indice desde donde se deben hacer las pruebas
+            {
+
+                //progresoBarra.Value += 1;
+
+
+                // Comienza la asignacion de valores
+                for (int j = 0; j < columnasMatriz; j++)            // Este for recorre las columnas
+                {
+
+                    if (!(j == colClase))
+                    {
+
+                        // En este for se buscan los valores del valor en el que se esta parado
+                        for (int x = 0; x < indiceFinEnt; x++)          // Este for recorre los indices que son de entrenamiento
+                        {
+                            // Se recorre las clases para verificar si el valor pertenece a alguna de ellas
+                            for (int c = 0; c < clases.Count; c++)
+                            {
+
+                                if (matrizDatos[i, j].Equals(matrizDatos[x, j]) && clases.ElementAt(c).Key.Equals(matrizDatos[x, colClase]))
+                                {
+
+                                    tablaProbs[j, c] += 1;   // Aquí se va almacenando la cantidad de veces que se tiene el valor y pertenece a la clase
+
+                                }
+
+                            }
+
+
+                        }
+
+
+
+                    }
+
+                }
+
+                // Se obtienen las probabilidades del renglon
+                for (int y = 0; y < clases.Count; y++)
+                {
+
+                    double probFinal = 1;
+
+                    for (int x = 0; x < columnasMatriz; x++)
+                    {
+                        if (!(x == colClase))
+                        {
+
+                            // Se debe saber cuantas categorias hay por columna, es decir, si el dato ya viene discretizado se necesita saber cuantas categorias tiene esa columna
+                            // De forma que si es igual a 0 entonces la columna no estaba discretizada
+                            if (infoCatColumna[x] == 0)
+                            {
+                                tablaProbs[x, y] /= (clases.ElementAt(y).Value + categorias);   // Se suma el numero categorias del atributo
+                            }
+                            else
+                            {
+
+                                tablaProbs[x, y] /= (clases.ElementAt(y).Value + infoCatColumna[x]);   // Se suma el numero categorias de la columna que ya estaba discretizada al atributo
+
+                            }
+
+                            probFinal *= tablaProbs[x, y];
+
+                        }
+
+                    }
+
+                    // Se guardan las probabilidades del renglón de cada clase 
+                    probabilidades[y] = probFinal * (clases.ElementAt(y).Value / renglonesMatriz);
+                    //MessageBox.Show($"La probabilidad de la clase {y} = {probabilidades[y]}", "Probabilidades");
+
+                }
+
+                // Se obtiene el indice del numero mayor y se asigna la clase al renglón mediante el indice
+                for (int x = 0; x < probabilidades.Length; x++)
+                {
+
+
+                    if (probabilidades[x] == probabilidades.Max())
+                    {
+
+                        //MessageBox.Show($"El valor de la matriz es {matrizDatos[i, colClase]}", "Probabilidades Antes");
+                        //MessageBox.Show($"El valor de clase es {clases.ElementAt(x).Key}", "Probabilidades Antes");
+                        //MessageBox.Show($"Valor en matrizDatos: {matrizDatos[i, colClase]}, Valor en matrizReal: {matrizReal[i, colClase]}", "Antes");
+                        matrizDatos[i, colClase] = clases.ElementAt(x).Key;
+                        //MessageBox.Show($"Valor en matrizDatos: {matrizDatos[i, colClase]}, Valor en matrizReal: {matrizReal[i, colClase]}", "Despues");
+                        //MessageBox.Show($"El valor de la matriz es {matrizDatos[i, colClase]}", "Probabilidades Despues");
+                    }
+
+                }
+
+
+            }
+
+            return matrizDatos;
+        }
+
+        private double[,] GenerarMatrizConfusion(string[,] matrizDatos, string[,] matrizReal, int renglonesMatriz, int colClase, Dictionary<string, double> clases) {
+
+            double[,] matrizConfusion = new double[clases.Count, clases.Count];
+
+            for (int i = 0; i < renglonesMatriz; i++)
+            {
+
+                if (matrizDatos[i, colClase].Equals(matrizReal[i, colClase]) || matrizDatos[i, colClase] != matrizReal[i, colClase])
+                {
+
+                    //MessageBox.Show($"Valor en matrizDatos: {matrizDatos[i, colClase]}, Valor en matrizReal: {matrizReal[i, colClase]}", "Matriz Confusion");
+
+                    int indice1 = clases.Keys.ToList().IndexOf(matrizDatos[i, colClase]);
+                    int indice2 = clases.Keys.ToList().IndexOf(matrizReal[i, colClase]);
+
+                    matrizConfusion[indice1, indice2] += 1;
+                    //MessageBox.Show($"El valor de la posicion {indice1}, {indice2} es {matrizConfusion[indice1, indice2]}", "Matriz Confusion");
+                    //MessageBox.Show($"", "Matriz Confusion");
+
+                }
+
+            }
+
+            return matrizConfusion;
+
+        }
+
     }
 }

@@ -49,6 +49,8 @@
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.pnlResultados = new System.Windows.Forms.Panel();
             this.btnRegresar = new System.Windows.Forms.Button();
+            this.progresoBarra = new System.Windows.Forms.ProgressBar();
+            this.lblEstado = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dgvConfusion)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dgvMetricas)).BeginInit();
             this.groupBox1.SuspendLayout();
@@ -267,11 +269,31 @@
             this.btnRegresar.UseVisualStyleBackColor = true;
             this.btnRegresar.Click += new System.EventHandler(this.btnRegresar_Click);
             // 
+            // progresoBarra
+            // 
+            this.progresoBarra.Location = new System.Drawing.Point(12, 628);
+            this.progresoBarra.Name = "progresoBarra";
+            this.progresoBarra.Size = new System.Drawing.Size(649, 23);
+            this.progresoBarra.TabIndex = 20;
+            this.progresoBarra.Visible = false;
+            // 
+            // lblEstado
+            // 
+            this.lblEstado.AutoSize = true;
+            this.lblEstado.Location = new System.Drawing.Point(13, 603);
+            this.lblEstado.Name = "lblEstado";
+            this.lblEstado.Size = new System.Drawing.Size(59, 21);
+            this.lblEstado.TabIndex = 21;
+            this.lblEstado.Text = "Estado:";
+            this.lblEstado.Visible = false;
+            // 
             // FRM_Clasificador
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(667, 608);
+            this.ClientSize = new System.Drawing.Size(673, 606);
+            this.Controls.Add(this.lblEstado);
+            this.Controls.Add(this.progresoBarra);
             this.Controls.Add(this.pnlResultados);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.label5);
@@ -318,5 +340,7 @@
         private GroupBox groupBox1;
         private Panel pnlResultados;
         private Button btnRegresar;
+        private ProgressBar progresoBarra;
+        private Label lblEstado;
     }
 }
