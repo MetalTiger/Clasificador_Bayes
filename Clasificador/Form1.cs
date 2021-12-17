@@ -14,6 +14,9 @@ namespace Clasificador
         private void btnRuta_Click(object sender, EventArgs e)
         {
 
+            openFileDialog.Filter = "csv files (*.csv)|*.csv|data files (*.data)|*.data|All files (*.*)|*.*";
+            openFileDialog.FilterIndex = 1;
+
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
@@ -59,11 +62,20 @@ namespace Clasificador
 
             } else if (txtCategorias.Text.Trim().Length == 0) {
                 MessageBox.Show("Introduzca un intervalo de discretización.", "Error");
+
+            } else if (int.Parse(txtPorcentajeEnt.Text) <= 0 || int.Parse(txtPorcentajeEnt.Text) >= 100) {
+                MessageBox.Show("El porcentaje de entrenamiento debe ser mayor a 0 y menor que 100.", "Error");
+
+            }
+            else if (int.Parse(txtCategorias.Text) <= 1)
+            {
+                MessageBox.Show("El intervalo de discretización debe ser mayor a 1.", "Error");
+
             }
             else
             {
                 // Lectura de archivo y construcción de la matriz
-               
+
                 try
                 {
 
@@ -82,265 +94,277 @@ namespace Clasificador
                     }
 
                     lineas = Desordenar(lineas.ToList());
-                    
+
                     int columnasMatriz = lineas[0].Split(',').Length;       // Se obtienen las columnas
 
-                    string[,] matrizDatos = new string[renglonesMatriz, columnasMatriz];    // Se crea la matriz de datos
-                    string[,] matrizReal = new string[renglonesMatriz, columnasMatriz];    // Se crea la matriz de datos
-
-                    //MessageBox.Show($"El archivo tiene {renglonesMatriz} renglones y {columnasMatriz} columnas.", "Infor");
-
-                    //progresoBarra.Maximum = renglonesMatriz;
-                    lblEstado.Text = "Estado: Cargando Matriz";
-                    for (int i = 0; i < renglonesMatriz; i++)
+                    if (int.Parse(txtColClase.Text) <= 0 || int.Parse(txtColClase.Text) > columnasMatriz)
                     {
-
-                        string[] linea = lineas[i].Split(',');   // Se obtiene un renglon o linea del arreglo de lineas
-                        //progresoBarra.Value += 1;
-                        //MessageBox.Show($"{linea[0]},{linea[1]},{linea[2]},{linea[3]},{linea[4]}", "Linea");
-
-                        for (int j = 0; j < columnasMatriz; j++)
-                        {
-
-                            matrizDatos[i, j] = linea[j];            // Se mete cada renglon a la matriz
-                            matrizReal[i, j] = linea[j];
-                        }
+                        MessageBox.Show("La columna de clase debe estar en el rango de columnas del dataset.", "Error");
 
 
                     }
-
-
-                    // Se guarda la matriz de datos en la matriz real para calculos posteriores
-
-
-                    // Obtener clases a partir de renglon proporcionado
-                    lblEstado.Text = "Estado: Recabando clases";
-                    int colClase = Convert.ToInt32(txtColClase.Text) - 1;
-
-                    Dictionary<String, double> clases = new Dictionary<String, double>(); // Diccionario que almacena las clases y el numero de estas
-
-                    clases = BuscarClases(matrizDatos, renglonesMatriz, colClase);
-
-                    //List<string> clases = new List<string>();       
-                    //List<string> instSinClase = new List<string>(); // Lista que almacena las instancias sin clase
-
-                    //progresoBarra.Maximum = renglonesMatriz;
-                    
-                    //progresoBarra.Value = 0;
-
-
-                    //for (int i = 0; i < clases.Count; i++)
-                    //{
-                    //    MessageBox.Show(clases.ElementAt(i).ToString(), "Infor");
-                    //}
-
-
-                    // Saber cuantas categorias tienen las columnas discretizadas
-                    /* 
-                     * Una lista almacenará los valores discretizados de la columna, si la columna no esta discretizada la lista no almacenará nada
-                     * Se tendrá un vector que contendrá la cantidad de clases discretizadas en la columna, de forma que el indice de este correspondera al
-                     * numero de columna. Si una columna no esta discretizada entonces el valor de la lista será 0.
-                     */
-
-                    // Vector que almacena la cantidad de categorias por columna
-                    int[] infoCatColumna = BuscarCategoriasColumnas(matrizDatos, renglonesMatriz, columnasMatriz, colClase);
-
-                    // Discretización
-                    // Primero se sacan los mayores y menores de cada columna
-                     double[,] mayoresMenores = CalcularValsMaxMin(matrizDatos, columnasMatriz, renglonesMatriz);   // Matriz que contendra los valores mayor y menor de cada columna
-
-                    // Luego se realiza la discretización de cada valor del renglon
-                    lblEstado.Text = "Estado: Discretizando columnas";
-                    int categorias = int.Parse(txtCategorias.Text);
-                    
-                    matrizDatos = DiscretizarDatos(matrizDatos, renglonesMatriz, columnasMatriz, mayoresMenores, categorias);
-
-                    // En este punto los datos ya estan discretizados
-
-                    // Cabmiar valores de prueba
-                    lblEstado.Text = "Estado: Cambiando valores de prueba";
-
-                    matrizDatos = CambiarValoresPrueba(matrizDatos, renglonesMatriz, columnasMatriz, colClase, clases, infoCatColumna, categorias);
-
-                    // Matriz de confusión
-
-                    /*
-                     * Se recorreran las 2 matrices (Datos y Real) comparando su colClase, habrá una condición que haga esta comparación
-                     * Si son iguales se obtiene el índice de la clase en las 2 matrices y estos indices indicaran la posición del contador a 
-                     * aumentar en la matriz de confusión.
-                    */
-
-                    lblEstado.Text = "Estado: Generando Matriz de Confusión";
-                    double[,] matrizConfusion = GenerarMatrizConfusion(matrizDatos, matrizReal, renglonesMatriz, colClase, clases);
-
-                    // En este punto la matriz de confusión ya esta generada
-
-                    // Calculo de métricas
-                    dgvConfusion.Columns.Clear();
-                    dgvConfusion.Rows.Clear();
-
-                    lblEstado.Text = "Estado: Calculando Métricas";
-                    for (int i = 0; i < clases.Count; i++)
+                    else 
                     {
 
-                        dgvConfusion.Columns.Add("columna" + i, clases.ElementAt(i).Key);
+                        string[,] matrizDatos = new string[renglonesMatriz, columnasMatriz];    // Se crea la matriz de datos
+                        string[,] matrizReal = new string[renglonesMatriz, columnasMatriz];    // Se crea la matriz de datos
 
-                    }
+                        //MessageBox.Show($"El archivo tiene {renglonesMatriz} renglones y {columnasMatriz} columnas.", "Infor");
 
-                    dgvConfusion.Columns.Add("columnaTotal", "Total");
-                    //MessageBox.Show($"El DGV tiene {dgvConfusion.Columns.Count} columnas.","Columnas de dgv");
-                    //MessageBox.Show($"Hay {clases.Count} clases.", "Columnas de dgv");
-
-                    double[] totalesVerticales = new double[clases.Count];
-                    double totalDiagonal = 0;
-
-                    for (int i = 0; i < clases.Count; i++)
-                    {
-                        double total = 0;
-
-                        dgvConfusion.Rows.Add();
-
-                        for (int j = 0; j < clases.Count; j++)
+                        //progresoBarra.Maximum = renglonesMatriz;
+                        lblEstado.Text = "Estado: Cargando Matriz";
+                        for (int i = 0; i < renglonesMatriz; i++)
                         {
-                            if (i == j)
+
+                            string[] linea = lineas[i].Split(',');   // Se obtiene un renglon o linea del arreglo de lineas
+                                                                     //progresoBarra.Value += 1;
+                                                                     //MessageBox.Show($"{linea[0]},{linea[1]},{linea[2]},{linea[3]},{linea[4]}", "Linea");
+
+                            for (int j = 0; j < columnasMatriz; j++)
                             {
-                                totalDiagonal += matrizConfusion[i, j];
+
+                                matrizDatos[i, j] = linea[j];            // Se mete cada renglon a la matriz
+                                matrizReal[i, j] = linea[j];
                             }
 
-                            //MessageBox.Show($"Matriz Confusión {matrizConfusion[i,j]}");
-                            dgvConfusion[j, i].Value = matrizConfusion[i, j];
-
-                            total += matrizConfusion[i, j];
-                            totalesVerticales[i] += matrizConfusion[j, i];
 
                         }
 
-                        dgvConfusion[clases.Count, i].Value = total;
 
-                    }
-
-                    for (int i = dgvConfusion.RowCount - 1; i < dgvConfusion.RowCount; i++)
-                    {
-
-                        //MessageBox.Show($"Totales Verticales {i} = {totalesVerticales[i]}", "DGV");
-
-                        for (int j = 0; j < clases.Count; j++)
-                        {
-                            // La i representa la columna y la j el renglon
-                            //MessageBox.Show($"Renglon {j}, Columna {i} = {dgvConfusion[j, i].Value}", "DGV");
-                            dgvConfusion[j, i].Value = totalesVerticales[j];
-                        }
+                        // Se guarda la matriz de datos en la matriz real para calculos posteriores
 
 
+                        // Obtener clases a partir de renglon proporcionado
+                        lblEstado.Text = "Estado: Recabando clases";
+                        int colClase = Convert.ToInt32(txtColClase.Text) - 1;
 
-                    }
+                        Dictionary<String, double> clases = new Dictionary<String, double>(); // Diccionario que almacena las clases y el numero de estas
 
-                    dgvConfusion[clases.Count, clases.Count].Value = renglonesMatriz;
+                        clases = BuscarClases(matrizDatos, renglonesMatriz, colClase);
 
-                    dgvMetricas.Rows.Clear();
-                    dgvMetricas.Columns.Clear();
+                        //List<string> clases = new List<string>();       
+                        //List<string> instSinClase = new List<string>(); // Lista que almacena las instancias sin clase
 
-                    string[] nombres = { "Categoria", "Precisión", "Recall", "F1" };
+                        //progresoBarra.Maximum = renglonesMatriz;
 
-                    if (clases.Count <= 2)
-                    {
-                        double precision = 0;
-                        double recall = 0;
-                        double f1 = 0;
-                        double accuracy = 0;
+                        //progresoBarra.Value = 0;
 
-                        for (int i = 0; i < nombres.Length; i++)
-                        {
-                            dgvMetricas.Columns.Add(nombres[i], nombres[i]);
-                        }
 
-                        //MessageBox.Show($"{matrizConfusion[0, 0]} / ({matrizConfusion[0, 0]} + {matrizConfusion[0, 1]})");
+                        //for (int i = 0; i < clases.Count; i++)
+                        //{
+                        //    MessageBox.Show(clases.ElementAt(i).ToString(), "Infor");
+                        //}
 
-                        precision = matrizConfusion[0, 0] / (matrizConfusion[0, 0] + matrizConfusion[0, 1]);
-                        recall = matrizConfusion[0, 0] / (matrizConfusion[0, 0] + matrizConfusion[1, 0]);
-                        f1 = 2 * ((precision * recall) / (precision + recall));
 
+                        // Saber cuantas categorias tienen las columnas discretizadas
+                        /* 
+                         * Una lista almacenará los valores discretizados de la columna, si la columna no esta discretizada la lista no almacenará nada
+                         * Se tendrá un vector que contendrá la cantidad de clases discretizadas en la columna, de forma que el indice de este correspondera al
+                         * numero de columna. Si una columna no esta discretizada entonces el valor de la lista será 0.
+                         */
+
+                        // Vector que almacena la cantidad de categorias por columna
+                        int[] infoCatColumna = BuscarCategoriasColumnas(matrizDatos, renglonesMatriz, columnasMatriz, colClase);
+
+                        // Discretización
+                        // Primero se sacan los mayores y menores de cada columna
+                        double[,] mayoresMenores = CalcularValsMaxMin(matrizDatos, columnasMatriz, renglonesMatriz);   // Matriz que contendra los valores mayor y menor de cada columna
+
+                        // Luego se realiza la discretización de cada valor del renglon
+                        lblEstado.Text = "Estado: Discretizando columnas";
+                        int categorias = int.Parse(txtCategorias.Text);
+
+                        matrizDatos = DiscretizarDatos(matrizDatos, renglonesMatriz, columnasMatriz, mayoresMenores, categorias);
+
+                        // En este punto los datos ya estan discretizados
+
+                        // Cabmiar valores de prueba
+                        lblEstado.Text = "Estado: Cambiando valores de prueba";
+
+                        matrizDatos = CambiarValoresPrueba(matrizDatos, renglonesMatriz, columnasMatriz, colClase, clases, infoCatColumna, categorias);
+
+                        // Matriz de confusión
+
+                        /*
+                         * Se recorreran las 2 matrices (Datos y Real) comparando su colClase, habrá una condición que haga esta comparación
+                         * Si son iguales se obtiene el índice de la clase en las 2 matrices y estos indices indicaran la posición del contador a 
+                         * aumentar en la matriz de confusión.
+                        */
+
+                        lblEstado.Text = "Estado: Generando Matriz de Confusión";
+                        double[,] matrizConfusion = GenerarMatrizConfusion(matrizDatos, matrizReal, renglonesMatriz, colClase, clases);
+
+                        // En este punto la matriz de confusión ya esta generada
+
+                        // Calculo de métricas
+                        dgvConfusion.Columns.Clear();
+                        dgvConfusion.Rows.Clear();
+
+                        lblEstado.Text = "Estado: Calculando Métricas";
                         for (int i = 0; i < clases.Count; i++)
                         {
 
-                            for (int j = 0; j < clases.Count; j++)
-                            {
-
-
-                                if (i == j)
-                                {
-                                    accuracy += matrizConfusion[i, j];
-
-                                }
-
-                            }
-
-
+                            dgvConfusion.Columns.Add("columna" + i, clases.ElementAt(i).Key);
 
                         }
 
-                        accuracy /= renglonesMatriz;
+                        dgvConfusion.Columns.Add("columnaTotal", "Total");
+                        //MessageBox.Show($"El DGV tiene {dgvConfusion.Columns.Count} columnas.","Columnas de dgv");
+                        //MessageBox.Show($"Hay {clases.Count} clases.", "Columnas de dgv");
 
-                        dgvMetricas.Rows.Add(clases.ElementAt(0).Key, precision, recall, f1);
-
-                        txtAccuracy.Text = accuracy.ToString("0.###");
-
-                    }
-                    else
-                    {
-
-                        double[] precision = new double[clases.Count];
-                        double[] recall = new double[clases.Count];
-                        double[] f1 = new double[clases.Count];
-                        double accuracy = 0;
-
-                        for (int i = 0; i < nombres.Length; i++)
-                        {
-                            dgvMetricas.Columns.Add(nombres[i], nombres[i]);
-                        }
-
+                        double[] totalesVerticales = new double[clases.Count];
+                        double totalDiagonal = 0;
 
                         for (int i = 0; i < clases.Count; i++)
                         {
+                            double total = 0;
 
-                            double precisionDiv = 0;
-                            double recallDiv = 0;
-
-
+                            dgvConfusion.Rows.Add();
 
                             for (int j = 0; j < clases.Count; j++)
                             {
-                                precisionDiv += matrizConfusion[i, j];
-
-                                recallDiv += matrizConfusion[j, i];
-
                                 if (i == j)
                                 {
-                                    accuracy += matrizConfusion[i, j];
-
+                                    totalDiagonal += matrizConfusion[i, j];
                                 }
 
+                                //MessageBox.Show($"Matriz Confusión {matrizConfusion[i,j]}");
+                                dgvConfusion[j, i].Value = matrizConfusion[i, j];
+
+                                total += matrizConfusion[i, j];
+                                totalesVerticales[i] += matrizConfusion[j, i];
+
+                            }
+
+                            dgvConfusion[clases.Count, i].Value = total;
+
+                        }
+
+                        for (int i = dgvConfusion.RowCount - 1; i < dgvConfusion.RowCount; i++)
+                        {
+
+                            //MessageBox.Show($"Totales Verticales {i} = {totalesVerticales[i]}", "DGV");
+
+                            for (int j = 0; j < clases.Count; j++)
+                            {
+                                // La i representa la columna y la j el renglon
+                                //MessageBox.Show($"Renglon {j}, Columna {i} = {dgvConfusion[j, i].Value}", "DGV");
+                                dgvConfusion[j, i].Value = totalesVerticales[j];
                             }
 
 
 
-                            precision[i] = matrizConfusion[i, i] / precisionDiv;
-                            recall[i] = matrizConfusion[i, i] / recallDiv;
-
-                            f1[i] = 2 * ((precision[i] * recall[i]) / (precision[i] + recall[i]));
-
-                            dgvMetricas.Rows.Add(clases.ElementAt(i).Key, precision[i], recall[i], f1[i]);
-
                         }
 
-                        accuracy /= renglonesMatriz;
+                        dgvConfusion[clases.Count, clases.Count].Value = renglonesMatriz;
+
+                        dgvMetricas.Rows.Clear();
+                        dgvMetricas.Columns.Clear();
+
+                        string[] nombres = { "Categoria", "Precisión", "Recall", "F1" };
+
+                        if (clases.Count <= 2)
+                        {
+                            double precision = 0;
+                            double recall = 0;
+                            double f1 = 0;
+                            double accuracy = 0;
+
+                            for (int i = 0; i < nombres.Length; i++)
+                            {
+                                dgvMetricas.Columns.Add(nombres[i], nombres[i]);
+                            }
+
+                            //MessageBox.Show($"{matrizConfusion[0, 0]} / ({matrizConfusion[0, 0]} + {matrizConfusion[0, 1]})");
+
+                            precision = matrizConfusion[0, 0] / (matrizConfusion[0, 0] + matrizConfusion[0, 1]);
+                            recall = matrizConfusion[0, 0] / (matrizConfusion[0, 0] + matrizConfusion[1, 0]);
+                            f1 = 2 * ((precision * recall) / (precision + recall));
+
+                            for (int i = 0; i < clases.Count; i++)
+                            {
+
+                                for (int j = 0; j < clases.Count; j++)
+                                {
 
 
-                        txtAccuracy.Text = accuracy.ToString("0.###");
+                                    if (i == j)
+                                    {
+                                        accuracy += matrizConfusion[i, j];
+
+                                    }
+
+                                }
+
+
+
+                            }
+
+                            accuracy /= renglonesMatriz;
+
+                            dgvMetricas.Rows.Add(clases.ElementAt(0).Key, precision.ToString("0.###"), recall.ToString("0.###"), f1.ToString("0.###"));
+
+                            txtAccuracy.Text = accuracy.ToString("0.###");
+
+                        }
+                        else
+                        {
+
+                            double[] precision = new double[clases.Count];
+                            double[] recall = new double[clases.Count];
+                            double[] f1 = new double[clases.Count];
+                            double accuracy = 0;
+
+                            for (int i = 0; i < nombres.Length; i++)
+                            {
+                                dgvMetricas.Columns.Add(nombres[i], nombres[i]);
+                            }
+
+
+                            for (int i = 0; i < clases.Count; i++)
+                            {
+
+                                double precisionDiv = 0;
+                                double recallDiv = 0;
+
+
+
+                                for (int j = 0; j < clases.Count; j++)
+                                {
+                                    precisionDiv += matrizConfusion[i, j];
+
+                                    recallDiv += matrizConfusion[j, i];
+
+                                    if (i == j)
+                                    {
+                                        accuracy += matrizConfusion[i, j];
+
+                                    }
+
+                                }
+
+
+
+                                precision[i] = matrizConfusion[i, i] / precisionDiv;
+                                recall[i] = matrizConfusion[i, i] / recallDiv;
+
+                                f1[i] = 2 * ((precision[i] * recall[i]) / (precision[i] + recall[i]));
+
+                                dgvMetricas.Rows.Add(clases.ElementAt(i).Key, precision[i].ToString("0.###"), recall[i].ToString("0.###"), f1[i].ToString("0.###"));
+
+                            }
+
+                            accuracy /= renglonesMatriz;
+
+
+                            txtAccuracy.Text = accuracy.ToString("0.###");
+                        }
+
+                        lblEstado.Text = "Estado: Presentación de Resultados";
+                        pnlResultados.Visible = true;
+
+
                     }
-
-                    lblEstado.Text = "Estado: Presentación de Resultados";
-                    pnlResultados.Visible = true;
 
 
                 }
@@ -349,10 +373,10 @@ namespace Clasificador
                     MessageBox.Show(ex.Message, "Error");
 
                 }
-                catch (IOException ex) 
-                { 
+                catch (IOException ex)
+                {
                     MessageBox.Show(ex.Message, "Error");
-                
+
                 }
                 // Tira ArgumentException cuando no hay ruta
                 // Tira IO.IOException cuando el archivo esta siendo ocupado por otro proceso
@@ -381,8 +405,6 @@ namespace Clasificador
                 arr.RemoveAt(val);
             }
             arr = arrDes;
-
-            Thread.Sleep(100);
 
             return arr.ToArray();
 
@@ -625,22 +647,23 @@ namespace Clasificador
             //progresoBarra.Value += 1;
 
             // Se inicializa la tabla con los valores de k
-            for (int j = 0; j < columnasMatriz; j++)
-            {
-
-                for (int z = 0; z < clases.Count; z++)
-                {
-                    tablaProbs[j, z] = k;
-
-                }
-
-            }
+            
 
             for (int i = indiceFinEnt; i < renglonesMatriz; i++)    // Este for comienza en el indice desde donde se deben hacer las pruebas
             {
 
                 //progresoBarra.Value += 1;
 
+                for (int j = 0; j < columnasMatriz; j++)
+                {
+
+                    for (int z = 0; z < clases.Count; z++)
+                    {
+                        tablaProbs[j, z] = k;
+
+                    }
+
+                }
 
                 // Comienza la asignacion de valores
                 for (int j = 0; j < columnasMatriz; j++)            // Este for recorre las columnas
@@ -758,6 +781,15 @@ namespace Clasificador
             }
 
             return matrizConfusion;
+
+        }
+
+        private void txtcolClase_KeyPress(object sender, KeyPressEventArgs e) {
+            
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar))
+            {
+                e.Handled = true;
+            }
 
         }
 

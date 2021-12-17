@@ -107,6 +107,7 @@
             this.txtPorcentajeEnt.Name = "txtPorcentajeEnt";
             this.txtPorcentajeEnt.Size = new System.Drawing.Size(70, 29);
             this.txtPorcentajeEnt.TabIndex = 5;
+            this.txtPorcentajeEnt.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtcolClase_KeyPress);
             // 
             // label4
             // 
@@ -136,6 +137,7 @@
             this.txtColClase.Name = "txtColClase";
             this.txtColClase.Size = new System.Drawing.Size(54, 29);
             this.txtColClase.TabIndex = 3;
+            this.txtColClase.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtcolClase_KeyPress);
             // 
             // label5
             // 
@@ -164,6 +166,7 @@
             this.txtCategorias.Name = "txtCategorias";
             this.txtCategorias.Size = new System.Drawing.Size(70, 29);
             this.txtCategorias.TabIndex = 6;
+            this.txtCategorias.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtcolClase_KeyPress);
             // 
             // dgvConfusion
             // 
@@ -253,9 +256,9 @@
             this.pnlResultados.Controls.Add(this.label9);
             this.pnlResultados.Controls.Add(this.dgvMetricas);
             this.pnlResultados.Controls.Add(this.label8);
-            this.pnlResultados.Location = new System.Drawing.Point(12, 3);
+            this.pnlResultados.Location = new System.Drawing.Point(6, 3);
             this.pnlResultados.Name = "pnlResultados";
-            this.pnlResultados.Size = new System.Drawing.Size(654, 597);
+            this.pnlResultados.Size = new System.Drawing.Size(660, 597);
             this.pnlResultados.TabIndex = 19;
             this.pnlResultados.Visible = false;
             // 
