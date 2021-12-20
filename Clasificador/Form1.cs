@@ -174,7 +174,7 @@ namespace Clasificador
                         lblEstado.Text = "Estado: Discretizando columnas";
                         int categorias = int.Parse(txtCategorias.Text);
 
-                        matrizDatos = DiscretizarDatos(matrizDatos, renglonesMatriz, columnasMatriz, mayoresMenores, categorias);
+                        matrizDatos = DiscretizarDatos(matrizDatos, renglonesMatriz, columnasMatriz, colClase, mayoresMenores, categorias);
 
                         // En este punto los datos ya estan discretizados
 
@@ -544,7 +544,7 @@ namespace Clasificador
 
         }
 
-        private string[,] DiscretizarDatos(string[,] matrizDatos, int renglonesMatriz, int columnasMatriz, double[,] mayoresMenores, double categorias)
+        private string[,] DiscretizarDatos(string[,] matrizDatos, int renglonesMatriz, int columnasMatriz, int colClase, double[,] mayoresMenores, double categorias)
         {
             // Lista de rangos que varía
             List<double> listaRangos = new List<double>();
@@ -555,7 +555,7 @@ namespace Clasificador
                 listaRangos.Clear();
                 //progresoBarra.Value += 1;
                 // Si el valor es un número entonces se discretizara
-                if (Double.TryParse(matrizDatos[0, i], out _)) // TryParse devuelve false si lo que se quiere convertir no es un numero
+                if (Double.TryParse(matrizDatos[0, i], out _) && i != colClase) // TryParse devuelve false si lo que se quiere convertir no es un numero
                 {
 
                     double rango = (mayoresMenores[0, i] - mayoresMenores[1, i]) / categorias;      // Se obtiene el rango de la columna
